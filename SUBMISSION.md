@@ -2,7 +2,7 @@
 
 GitHub repo:
 
-`<paste repository URL here>`
+`https://github.com/agrawalneel25/agentic-java2kotlin-eval-pipeline`
 
 I built a Kotlin evaluation harness for static Java-to-Kotlin conversion. The pipeline targets Apache Commons CSV 1.14.1 as the real-world benchmark instead of spring-petclinic, and it includes a custom edge-case corpus designed to stress J2K behavior.
 
