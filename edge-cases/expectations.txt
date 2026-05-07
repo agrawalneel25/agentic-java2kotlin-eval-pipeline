@@ -1,0 +1,7 @@
+anonymous-class|anonymous-class/Sample.java|object\s*:\s*Comparator<String>|anonymous Comparator should survive as an object expression
+wildcard-generics|wildcard-generics/Sample.java|List<out Number>|extends wildcard should become out variance
+wildcard-generics|wildcard-generics/Sample.java|MutableList<in Int>|super wildcard should become in variance
+static-constants|static-constants/Sample.java|const val API_VERSION|String constant should become const val
+try-with-resources|try-with-resources/Sample.java|\.use\s*\{|try-with-resources should become use
+framework-annotations|framework-annotations/Sample.java|@Route\("csv/import"\)|class annotation should be preserved
+nested-builders|nested-builders/Sample.java|Builder<T : Builder<T>>|self-type builder should preserve recursive generic bound
