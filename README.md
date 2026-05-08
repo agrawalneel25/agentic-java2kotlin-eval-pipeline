@@ -15,14 +15,21 @@ flowchart LR
     C --> F["JSONL metrics"]
 ```
 
-The static J2K converter is the hard boundary. IntelliJ IDEA exposes the converter through IDE internals, not a stable public CLI. The repo therefore keeps conversion as an explicit hook:
+The static J2K converter is the hard boundary. IntelliJ IDEA exposes the converter through IDE internals, not a stable public CLI. This repo includes an IntelliJ Platform runner module:
 
-```bash
-J2K_RUNNER_CMD="/path/to/headless-j2k --input {input} --output {output}" \
-  bash scripts/run-static-j2k.sh edge-cases/java build/edge-static-j2k
+```text
+runner/src/main/kotlin/j2k/runner/J2KStarter.kt
 ```
 
-CI runs the Kotlin evaluator and fetches the real-world Apache Commons CSV source. If the repository variable `J2K_RUNNER_CMD` is configured, CI also runs the static converter hook against Apache Commons CSV and evaluates the output. The committed `fixtures/edge-static-j2k` directory gives the evaluator a reproducible corpus for tests and reports when the headless converter command is not available.
+The runner registers an `ApplicationStarter` named `j2k`, opens a temporary IntelliJ project, attaches a JDK and Java source root, waits for smart mode, then calls `NewJavaToKotlinConverter.elementsToKotlin`.
+
+To run it locally:
+
+```bash
+bash scripts/run-static-j2k.sh edge-cases/java build/edge-static-j2k
+```
+
+CI builds and validates the runner module, runs the Kotlin evaluator, and fetches the real-world Apache Commons CSV source. If the repository variable `J2K_RUNNER_CMD` is configured, CI also runs the static converter hook against Apache Commons CSV and evaluates the output. I kept the conversion execution optional in CI because `runIde` can hang in headless Linux before the `ApplicationStarter` dispatches; the runner code itself still compiles and plugin.xml is checked.
 
 ## Why Apache Commons CSV
 
@@ -96,6 +103,7 @@ The conversion hook is present, but I did not claim a full Commons CSV conversio
 - `edge-cases/HYPOTHESES.md`
 - `SUMMARY.md`
 - `EDGE_CASE_REPORT.md`
+- `HEADLESS_J2K.md`
 
 ## Proposed Fix
 

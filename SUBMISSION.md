@@ -27,15 +27,17 @@ The GitHub Action runs:
 .github/workflows/eval.yml
 ```
 
-It tests the evaluator, runs the edge-case evaluation, and fetches the Apache Commons CSV benchmark source.
+It tests the evaluator, builds and validates the IntelliJ static-J2K runner module, runs the edge-case evaluation, and fetches the Apache Commons CSV benchmark source.
 
-I also added a static J2K runner hook:
+I also added a static J2K runner:
 
 ```text
-scripts/run-static-j2k.sh
+runner/src/main/kotlin/j2k/runner/J2KStarter.kt
 ```
 
-The hook expects `J2K_RUNNER_CMD` because IntelliJ's static converter is not exposed as a stable public CLI. I made that boundary explicit rather than pretending a fake converter is the JetBrains converter.
+It is an IntelliJ `ApplicationStarter` named `j2k`. It opens a temporary project, attaches a JDK and Java source root, waits for indexing to finish, then calls `NewJavaToKotlinConverter.elementsToKotlin`.
+
+The script `scripts/run-static-j2k.sh` runs that runner by default. It can also use `J2K_RUNNER_CMD` if the runner is provided externally. In CI, I build and validate the runner, but keep full conversion execution optional because `runIde` can hang under headless Linux before the starter dispatches. I documented this boundary instead of hiding it.
 
 Current edge-case results:
 

@@ -5,7 +5,7 @@ This repo contains a Kotlin evaluation harness for the Agentic Java2Kotlin Eval 
 ## Pipeline
 
 1. Fetch a real-world Java project, Apache Commons CSV 1.14.1.
-2. Run a static J2K conversion command through `scripts/run-static-j2k.sh`.
+2. Run static J2K through the IntelliJ Platform runner module in `runner/`, or through `J2K_RUNNER_CMD` when configured.
 3. Evaluate the produced Kotlin with the Kotlin evaluator in `src/main/kotlin/j2keval`.
 4. Write Markdown and JSONL reports.
 5. Run the same evaluator on a custom edge-case corpus with explicit hypotheses.
@@ -43,4 +43,4 @@ The most useful failure is the `try-with-resources` case. The converted Kotlin p
 
 ## Limitation
 
-The Kotlin evaluator runs in CI. The static J2K conversion step is represented as an explicit hook through `J2K_RUNNER_CMD` because IntelliJ's static converter is not shipped as a stable CLI. I did not claim a full Apache Commons CSV conversion without that runner.
+The Kotlin evaluator runs in CI. CI also builds and validates the static J2K runner module. Full conversion execution is optional in CI because IntelliJ `runIde` can hang under headless Linux before the `ApplicationStarter` dispatches. I did not claim a full Apache Commons CSV conversion without a successful runner execution.

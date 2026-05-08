@@ -1,0 +1,14 @@
+<idea-plugin>
+    <id>dev.neel.j2k.runner</id>
+    <name>Headless J2K Runner</name>
+    <vendor>Neel Agrawal</vendor>
+    <description>Headless ApplicationStarter wrapper around IntelliJ IDEA's static Java-to-Kotlin converter.</description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
+    <depends>org.jetbrains.kotlin</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <appStarter implementation="j2k.runner.J2KStarter"/>
+    </extensions>
+</idea-plugin>

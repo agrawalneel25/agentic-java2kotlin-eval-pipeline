@@ -17,6 +17,8 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Test evaluator
         run: ./gradlew test
+      - name: Build static J2K runner
+        run: ./gradlew :runner:compileKotlin :runner:verifyPluginProjectConfiguration
       - name: Run edge-case evaluation
         run: bash scripts/run-edge-eval.sh
       - name: Fetch real-world benchmark source
@@ -26,7 +28,8 @@ jobs:
           J2K_RUNNER_CMD: ${{ vars.J2K_RUNNER_CMD }}
         run: |
           if [ -z "$J2K_RUNNER_CMD" ]; then
-            echo "J2K_RUNNER_CMD is not configured, skipping real-world conversion step"
+            echo "J2K_RUNNER_CMD is not configured, skipping real-world conversion execution in CI"
+            echo "The runner module is still compiled and plugin.xml is validated above."
             exit 0
           fi
           bash scripts/run-static-j2k.sh work/commons-csv/src/main/java build/commons-csv-j2k
