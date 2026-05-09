@@ -25,4 +25,4 @@ bash scripts/run-static-j2k.sh work/commons-csv/src/main/java build/commons-csv-
 ./gradlew run --args="--java work/commons-csv/src/main/java --kotlin build/commons-csv-j2k --report reports/COMMONS_CSV.md --jsonl reports/commons-csv.jsonl"
 ```
 
-The GitHub Action runs the same shape under `xvfb-run`: build the runner, convert the edge-case corpus, convert Apache Commons CSV, then evaluate both generated Kotlin trees.
+The GitHub Action builds and validates the runner, then checks reports generated from live static-J2K output. I keep the actual `runIde` command as a local/manual step because IntelliJ sandbox startup can hang under headless Linux even when the same runner completes on a developer machine.

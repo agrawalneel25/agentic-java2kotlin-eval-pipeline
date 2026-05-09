@@ -29,7 +29,7 @@ To run it locally:
 bash scripts/run-static-j2k.sh edge-cases/java build/edge-static-j2k
 ```
 
-CI builds and validates the runner module, runs the static converter on the edge-case corpus, runs the static converter on Apache Commons CSV, then evaluates the generated Kotlin output.
+CI builds and validates the runner module, runs the Kotlin evaluator, fetches Apache Commons CSV, and checks the committed reports produced from live static-J2K output. I do not run `runIde` inside GitHub Actions because the IntelliJ sandbox can hang under headless Linux even when the same runner completes locally.
 
 ## Why Apache Commons CSV
 
@@ -100,7 +100,7 @@ Real-world benchmark static J2K run:
 |---|---:|---:|---:|
 | Apache Commons CSV 1.14.1 | 12 | 12 | 0 |
 
-This is a structural evaluation, not a claim that Apache Commons CSV is now a production-ready Kotlin port. The next bar would be module-level compilation with the original project dependencies.
+This run was produced locally with the bundled IntelliJ runner. It is a structural evaluation, not a claim that Apache Commons CSV is now a production-ready Kotlin port. The next bar would be module-level compilation with the original project dependencies.
 
 ## Reports
 
@@ -131,4 +131,4 @@ That is not a universal fix for every API, but it demonstrates the post-processi
 
 ## Scope
 
-The evaluator and static J2K runner run in CI. The runner uses IntelliJ Platform internals because the converter is not exposed as a stable standalone command-line tool.
+The evaluator and runner build run in CI. The live `runIde` conversion command is documented and was verified locally, but CI uses committed generated reports because the IntelliJ sandbox may hang under headless Linux. The runner uses IntelliJ Platform internals because the converter is not exposed as a stable standalone command-line tool.

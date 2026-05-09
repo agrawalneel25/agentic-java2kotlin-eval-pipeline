@@ -14,7 +14,7 @@ This repo contains a Kotlin evaluation harness for the Agentic Java2Kotlin Eval 
 
 I chose Apache Commons CSV instead of spring-petclinic. It is a small real library rather than a demo app, and its codebase still has enough shape to test J2K behavior: builders, enums, exceptions, package-private helpers, parser state, and public API constraints.
 
-The static J2K runner converts all 12 Java files in `src/main/java`. The Kotlin evaluator then matches those outputs against the Java source tree and writes `reports/COMMONS_CSV.md`.
+The static J2K runner was run locally against all 12 Java files in `src/main/java`. The Kotlin evaluator matched those outputs against the Java source tree and wrote `reports/COMMONS_CSV.md`.
 
 | Metric | Value |
 |---|---:|
@@ -49,4 +49,4 @@ The most useful failure is the `try-with-resources` case. The converted Kotlin p
 
 ## Limitation
 
-The Kotlin evaluator and static J2K runner run in CI. The Apache Commons CSV analysis is structural: it checks generated file coverage and simple Kotlin risk markers. Module-level compilation with the original project dependencies remains the next bar.
+The Kotlin evaluator and static J2K runner build run in CI. The Apache Commons CSV analysis is structural: it checks generated file coverage and simple Kotlin risk markers. Module-level compilation with the original project dependencies remains the next bar.
