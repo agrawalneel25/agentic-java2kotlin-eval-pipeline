@@ -17,10 +17,12 @@ Local command:
 bash scripts/run-static-j2k.sh edge-cases/java build/edge-static-j2k
 ```
 
-The GitHub Action compiles this runner and validates plugin configuration:
+Real-world benchmark command:
 
 ```bash
-./gradlew :runner:compileKotlin :runner:verifyPluginProjectConfiguration
+bash scripts/fetch-benchmark.sh
+bash scripts/run-static-j2k.sh work/commons-csv/src/main/java build/commons-csv-j2k
+./gradlew run --args="--java work/commons-csv/src/main/java --kotlin build/commons-csv-j2k --report reports/COMMONS_CSV.md --jsonl reports/commons-csv.jsonl"
 ```
 
-I do not force `runIde` execution in CI by default. IntelliJ Platform startup can hang under headless Linux before `ApplicationStarter` dispatches, which makes the job noisy rather than informative. If a stable runner command is available, set the repository variable `J2K_RUNNER_CMD` and the workflow will run conversion on Apache Commons CSV before evaluation.
+The GitHub Action runs the same shape under `xvfb-run`: build the runner, convert the edge-case corpus, convert Apache Commons CSV, then evaluate both generated Kotlin trees.

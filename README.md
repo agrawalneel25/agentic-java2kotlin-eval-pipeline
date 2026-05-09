@@ -29,7 +29,7 @@ To run it locally:
 bash scripts/run-static-j2k.sh edge-cases/java build/edge-static-j2k
 ```
 
-CI builds and validates the runner module, runs the Kotlin evaluator, and fetches the real-world Apache Commons CSV source. If the repository variable `J2K_RUNNER_CMD` is configured, CI also runs the static converter hook against Apache Commons CSV and evaluates the output. I kept the conversion execution optional in CI because `runIde` can hang in headless Linux before the `ApplicationStarter` dispatches; the runner code itself still compiles and plugin.xml is checked.
+CI builds and validates the runner module, runs the static converter on the edge-case corpus, runs the static converter on Apache Commons CSV, then evaluates the generated Kotlin output.
 
 ## Why Apache Commons CSV
 
@@ -65,6 +65,12 @@ Fetch the real-world benchmark source:
 bash scripts/fetch-benchmark.sh
 ```
 
+Run static J2K on the real-world benchmark:
+
+```bash
+bash scripts/run-static-j2k.sh work/commons-csv/src/main/java build/commons-csv-j2k
+```
+
 Run the evaluator on a converted repo after static J2K output exists:
 
 ```bash
@@ -88,17 +94,19 @@ The two compile failures are the interesting part:
 - `try-with-resources/Sample.kt` exposes a nullable `BufferedReader.readLine()` return where the Java method promised `String`.
 - `framework-annotations/Sample.kt` shows that annotation-heavy examples need module-level context, not isolated per-file compilation.
 
-Real-world benchmark source scan:
+Real-world benchmark static J2K run:
 
-| Benchmark | Java files | Converted files in repo |
-|---|---:|---:|
-| Apache Commons CSV 1.14.1 | 12 | 0 |
+| Benchmark | Java files | Converted Kotlin files | Unsafe markers |
+|---|---:|---:|---:|
+| Apache Commons CSV 1.14.1 | 12 | 12 | 0 |
 
-The conversion hook is present, but I did not claim a full Commons CSV conversion run without a working headless static-J2K runner.
+This is a structural evaluation, not a claim that Apache Commons CSV is now a production-ready Kotlin port. The next bar would be module-level compilation with the original project dependencies.
 
 ## Reports
 
 - `reports/EDGE_CASE_RESULTS.md`
+- `reports/EDGE_CASE_LIVE_J2K.md`
+- `reports/COMMONS_CSV.md`
 - `reports/COMMONS_CSV_SOURCE_SCAN.md`
 - `edge-cases/HYPOTHESES.md`
 - `SUMMARY.md`
@@ -121,6 +129,6 @@ return reader.readLine() ?: ""
 
 That is not a universal fix for every API, but it demonstrates the post-processing shape: detect a specific unsafe conversion, rewrite it, and re-run the evaluator.
 
-## Honest Scope
+## Scope
 
-The evaluator is complete and runs in CI. The static J2K hook is wired but depends on a headless IntelliJ runner because the converter is not exposed as a stable command-line tool. I chose to make that boundary explicit instead of hiding it behind a fake converter.
+The evaluator and static J2K runner run in CI. The runner uses IntelliJ Platform internals because the converter is not exposed as a stable standalone command-line tool.

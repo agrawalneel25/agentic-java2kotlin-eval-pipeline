@@ -1,0 +1,12 @@
+{"file":"org/apache/commons/csv/Constants.java", "converted":"true", "compileAttempted":"false", "compilePassed":"false", "unsafeMarkers":"0", "expectationPassed":"0", "expectationTotal":"0"}
+{"file":"org/apache/commons/csv/CSVException.java", "converted":"true", "compileAttempted":"false", "compilePassed":"false", "unsafeMarkers":"0", "expectationPassed":"0", "expectationTotal":"0"}
+{"file":"org/apache/commons/csv/CSVFormat.java", "converted":"true", "compileAttempted":"false", "compilePassed":"false", "unsafeMarkers":"0", "expectationPassed":"0", "expectationTotal":"0"}
+{"file":"org/apache/commons/csv/CSVParser.java", "converted":"true", "compileAttempted":"false", "compilePassed":"false", "unsafeMarkers":"0", "expectationPassed":"0", "expectationTotal":"0"}
+{"file":"org/apache/commons/csv/CSVPrinter.java", "converted":"true", "compileAttempted":"false", "compilePassed":"false", "unsafeMarkers":"0", "expectationPassed":"0", "expectationTotal":"0"}
+{"file":"org/apache/commons/csv/CSVRecord.java", "converted":"true", "compileAttempted":"false", "compilePassed":"false", "unsafeMarkers":"0", "expectationPassed":"0", "expectationTotal":"0"}
+{"file":"org/apache/commons/csv/DuplicateHeaderMode.java", "converted":"true", "compileAttempted":"false", "compilePassed":"false", "unsafeMarkers":"0", "expectationPassed":"0", "expectationTotal":"0"}
+{"file":"org/apache/commons/csv/ExtendedBufferedReader.java", "converted":"true", "compileAttempted":"false", "compilePassed":"false", "unsafeMarkers":"0", "expectationPassed":"0", "expectationTotal":"0"}
+{"file":"org/apache/commons/csv/Lexer.java", "converted":"true", "compileAttempted":"false", "compilePassed":"false", "unsafeMarkers":"0", "expectationPassed":"0", "expectationTotal":"0"}
+{"file":"org/apache/commons/csv/package-info.java", "converted":"true", "compileAttempted":"false", "compilePassed":"false", "unsafeMarkers":"0", "expectationPassed":"0", "expectationTotal":"0"}
+{"file":"org/apache/commons/csv/QuoteMode.java", "converted":"true", "compileAttempted":"false", "compilePassed":"false", "unsafeMarkers":"0", "expectationPassed":"0", "expectationTotal":"0"}
+{"file":"org/apache/commons/csv/Token.java", "converted":"true", "compileAttempted":"false", "compilePassed":"false", "unsafeMarkers":"0", "expectationPassed":"0", "expectationTotal":"0"}

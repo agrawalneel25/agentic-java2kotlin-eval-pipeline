@@ -6,9 +6,9 @@ if [ "$#" -ne 2 ]; then
   exit 2
 fi
 
-input="$1"
-output="$2"
-mkdir -p "$output"
+input="$(cd "$1" && pwd)"
+mkdir -p "$2"
+output="$(cd "$2" && pwd)"
 
 if [ -n "${J2K_RUNNER_CMD:-}" ]; then
   cmd="${J2K_RUNNER_CMD//\{input\}/$input}"

@@ -1,0 +1,6 @@
+{"file":"anonymous-class/Sample.java", "converted":"true", "compileAttempted":"false", "compilePassed":"false", "unsafeMarkers":"0", "expectationPassed":"0", "expectationTotal":"0"}
+{"file":"framework-annotations/Sample.java", "converted":"true", "compileAttempted":"false", "compilePassed":"false", "unsafeMarkers":"0", "expectationPassed":"0", "expectationTotal":"0"}
+{"file":"nested-builders/Sample.java", "converted":"true", "compileAttempted":"false", "compilePassed":"false", "unsafeMarkers":"0", "expectationPassed":"0", "expectationTotal":"0"}
+{"file":"static-constants/Sample.java", "converted":"true", "compileAttempted":"false", "compilePassed":"false", "unsafeMarkers":"0", "expectationPassed":"0", "expectationTotal":"0"}
+{"file":"try-with-resources/Sample.java", "converted":"true", "compileAttempted":"false", "compilePassed":"false", "unsafeMarkers":"0", "expectationPassed":"0", "expectationTotal":"0"}
+{"file":"wildcard-generics/Sample.java", "converted":"true", "compileAttempted":"false", "compilePassed":"false", "unsafeMarkers":"0", "expectationPassed":"0", "expectationTotal":"0"}

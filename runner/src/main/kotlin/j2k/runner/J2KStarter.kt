@@ -18,7 +18,6 @@ import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiManager
@@ -36,13 +35,15 @@ class J2KStarter : ApplicationStarter {
     override val commandName: String = "j2k"
 
     override fun main(args: List<String>) {
-        try {
-            runConversion(args)
-            exitProcess(0)
-        } catch (error: Throwable) {
-            System.err.println("[j2k] fatal: ${error.javaClass.simpleName}: ${error.message}")
-            error.printStackTrace(System.err)
-            exitProcess(1)
+        ApplicationManager.getApplication().executeOnPooledThread {
+            try {
+                runConversion(args)
+                exitProcess(0)
+            } catch (error: Throwable) {
+                System.err.println("[j2k] fatal: ${error.javaClass.simpleName}: ${error.message}")
+                error.printStackTrace(System.err)
+                exitProcess(1)
+            }
         }
     }
 
@@ -82,12 +83,14 @@ class J2KStarter : ApplicationStarter {
                 error("J2K returned no output for ${javaPaths.size - converted.size} of ${javaPaths.size} file(s)")
             }
         } finally {
-            if (jdk?.added == true) {
-                runWriteAction {
-                    ProjectJdkTable.getInstance().removeJdk(jdk.sdk)
+            ApplicationManager.getApplication().invokeAndWait {
+                if (jdk?.added == true) {
+                    runWriteAction {
+                        ProjectJdkTable.getInstance().removeJdk(jdk.sdk)
+                    }
                 }
+                ProjectManagerEx.getInstanceEx().closeAndDispose(project)
             }
-            ProjectManagerEx.getInstanceEx().closeAndDispose(project)
         }
     }
 
@@ -110,7 +113,7 @@ class J2KStarter : ApplicationStarter {
     private data class JdkRegistration(val sdk: Sdk, val added: Boolean)
 
     private fun attachJdkAndSource(project: Project, srcRoot: Path): JdkRegistration {
-        val registration = runWriteAction {
+        val registration = edtWrite {
             val table = ProjectJdkTable.getInstance()
             val existing = table.findJdk("auto-jdk-21")
             if (existing != null) {
@@ -121,7 +124,7 @@ class J2KStarter : ApplicationStarter {
                 JdkRegistration(sdk, added = true)
             }
         }
-        runWriteAction {
+        edtWrite {
             ProjectRootManager.getInstance(project).projectSdk = registration.sdk
         }
 
@@ -129,7 +132,7 @@ class J2KStarter : ApplicationStarter {
         val srcVf = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(srcRoot)
             ?: error("no VFS entry for $srcRoot")
 
-        runWriteAction {
+        edtWrite {
             val rootModel: ModifiableRootModel = ModuleRootManager.getInstance(module).modifiableModel
             rootModel.contentEntries.forEach { rootModel.removeContentEntry(it) }
             val entry = rootModel.addContentEntry(srcVf)
@@ -143,7 +146,7 @@ class J2KStarter : ApplicationStarter {
 
     private fun ensureModule(project: Project, srcRoot: Path): Module {
         ModuleManager.getInstance(project).modules.firstOrNull()?.let { return it }
-        return runWriteAction {
+        return edtWrite {
             val model: ModifiableModuleModel = ModuleManager.getInstance(project).getModifiableModel()
             val module = model.newModule(srcRoot.parent.resolve("module.iml").toString(), "JAVA_MODULE")
             model.commit()
@@ -169,8 +172,10 @@ class J2KStarter : ApplicationStarter {
                 .mapNotNull { vfs.refreshAndFindFileByNioFile(it) }
                 .mapNotNull { psi.findFile(it) as? PsiJavaFile }
         }
-        PsiDocumentManager.getInstance(project).commitAllDocuments()
-        val module = ModuleManager.getInstance(project).modules.first()
+        edt {
+            PsiDocumentManager.getInstance(project).commitAllDocuments()
+        }
+        val module = edt { ModuleManager.getInstance(project).modules.first() }
         val converter = NewJavaToKotlinConverter(project, module, ConverterSettings.defaultSettings)
         val result = ApplicationManager.getApplication()
             .executeOnPooledThread<org.jetbrains.kotlin.j2k.Result> {
@@ -201,6 +206,24 @@ class J2KStarter : ApplicationStarter {
             .replace(Regex("""\bkotlin\.(Int|Long|Short|Byte|Float|Double|Boolean|Char|String|Unit|Any)\b""")) {
                 it.groupValues[1]
             }
+
+    private fun <T> edt(block: () -> T): T {
+        var value: T? = null
+        var failure: Throwable? = null
+        ApplicationManager.getApplication().invokeAndWait {
+            try {
+                value = block()
+            } catch (error: Throwable) {
+                failure = error
+            }
+        }
+        failure?.let { throw it }
+        @Suppress("UNCHECKED_CAST")
+        return value as T
+    }
+
+    private fun <T> edtWrite(block: () -> T): T =
+        edt { runWriteAction { block() } }
 
     private fun log(message: String) = println("[j2k] $message")
 }
