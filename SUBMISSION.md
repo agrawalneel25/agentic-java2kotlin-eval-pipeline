@@ -1,11 +1,13 @@
-# Submission
+# Evaluation Notes
+
+Repository: https://github.com/agrawalneel25/agentic-java2kotlin-eval-pipeline
 
 ## What I built
 
 A Java-to-Kotlin conversion evaluation harness that runs against IntelliJ's static J2K converter. It has three parts:
 
-- `runner/` — an IntelliJ Platform `ApplicationStarter` that opens a temporary project, waits for smart mode, and calls `NewJavaToKotlinConverter.elementsToKotlin`. This is the only way to drive the static converter headlessly; it is not exposed as a stable standalone CLI.
-- `src/main/kotlin/j2keval/` — a Kotlin evaluator that scores converted output against Java source. It checks file coverage, isolated per-file compilation via `kotlinc`, hypothesis patterns, and unsafe markers (`!!`, TODO, NotImplementedError).
+- `runner/` - an IntelliJ Platform `ApplicationStarter` that opens a temporary project, waits for smart mode, and calls `NewJavaToKotlinConverter.elementsToKotlin`. This is the only way to drive the static converter headlessly; it is not exposed as a stable standalone CLI.
+- `src/main/kotlin/j2keval/` - a Kotlin evaluator that scores converted output against Java source. It checks file coverage, isolated per-file compilation via `kotlinc`, hypothesis patterns, and unsafe markers (`!!`, TODO, NotImplementedError).
 - Two corpora: Apache Commons CSV 1.14.1 as the real-world target, and a six-file edge-case corpus designed to surface specific converter behaviors.
 
 ## Why Apache Commons CSV
@@ -24,7 +26,7 @@ Edge corpus (six files, using committed fixtures from `fixtures/edge-static-j2k`
 | Hypothesis checks passed | 7 / 7 |
 | Unsafe markers | 0 |
 
-Real-world benchmark — Apache Commons CSV 1.14.1 (12 files, structural check only):
+Real-world benchmark, Apache Commons CSV 1.14.1 (12 files, structural check only):
 
 | Metric | Value |
 |---|---:|
@@ -66,6 +68,7 @@ bash scripts/run-edge-eval.sh
 
 ## Scope and limits
 
-CI builds the runner module and validates committed reports. The live `runIde` conversion is a local step because the IntelliJ sandbox can hang under headless Linux. Committed reports in `reports/` were produced from an actual local J2K run, not mocked output.
+CI runs the evaluator tests, builds the runner module, runs the edge-case evaluator, fetches Commons CSV, and checks the committed reports. The live `runIde` conversion is a local step because the IntelliJ sandbox can hang under headless Linux. Committed reports in `reports/` were produced from an actual local J2K run, not mocked output.
 
-Module-level compilation of Commons CSV remains the next bar — isolated per-file compilation catches individual nullability issues but cannot check cross-file type references.
+Module-level compilation of Commons CSV remains the next bar. Isolated per-file compilation catches individual nullability issues but cannot check cross-file type references.
+
