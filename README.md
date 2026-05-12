@@ -1,6 +1,6 @@
 # Agentic Java2Kotlin Eval Pipeline
 
-This is my solution for the JetBrains Agentic Java2Kotlin Eval Pipeline task. It has three parts:
+Java-to-Kotlin conversion evaluation harness built around IntelliJ's static J2K converter. Three parts:
 
 - an IntelliJ Platform runner that calls the static J2K converter
 - a Kotlin evaluator for converted output
@@ -46,8 +46,8 @@ Fetch the benchmark and run the evaluator after conversion:
 
 ```bash
 bash scripts/fetch-benchmark.sh
-bash scripts/run-static-j2k.sh work/commons-csv/src/main/java build/commons-csv-j2k
-./gradlew run --args="--java work/commons-csv/src/main/java --kotlin build/commons-csv-j2k --report reports/COMMONS_CSV.md --jsonl reports/commons-csv.jsonl"
+bash scripts/run-static-j2k.sh work/commons-csv/src/main/java build/commons-csv-j2k-real
+./gradlew run --args="--java work/commons-csv/src/main/java --kotlin build/commons-csv-j2k-real --report reports/COMMONS_CSV.md --jsonl reports/commons-csv.jsonl"
 ```
 
 ## Static J2K Runner
@@ -57,7 +57,7 @@ The static converter lives inside the IntelliJ IDEA Kotlin plugin, not behind a 
 Local command:
 
 ```bash
-bash scripts/run-static-j2k.sh edge-cases/java build/edge-static-j2k
+bash scripts/run-static-j2k.sh edge-cases/java build/edge-static-j2k-real
 ```
 
 CI builds the runner and checks the generated reports. It does not run `runIde` live because IntelliJ sandbox startup can hang in headless Linux. The local command above was the live conversion path.

@@ -1,4 +1,6 @@
-# J2K Evaluation Summary
+# Commons CSV Source Scan (pre-conversion baseline)
+
+This is the evaluator run against the Java source *before* J2K conversion, with an empty Kotlin output directory. It confirms the evaluator can enumerate the 12 source files and that 0 Kotlin outputs exist at that point. Compare against `COMMONS_CSV.md`, which shows the same run after J2K produced output.
 
 | Metric | Value |
 |---|---:|

@@ -1,6 +1,6 @@
 # Summary
 
-This repo contains a Kotlin evaluation harness for the Agentic Java2Kotlin Eval Pipeline task.
+Kotlin evaluation harness for IntelliJ's static Java-to-Kotlin converter.
 
 ## Pipeline
 

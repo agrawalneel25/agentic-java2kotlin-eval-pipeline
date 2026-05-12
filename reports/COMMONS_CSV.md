@@ -27,6 +27,6 @@
 
 ## Notes
 
-- `--isolated-compile` compiles each file alone. That is useful for edge-case fixtures, but it is not a full module build.
-- Module-level compilation remains the next bar for a real repository conversion.
+- `--isolated-compile` was not passed for this run, so compile is shown as `-` (not attempted), not as a failure. Per-file isolated compilation is useful for the edge-case corpus; for a library like Commons CSV it would fail on cross-file type references regardless of converter quality.
+- Module-level compilation with the original project dependencies remains the next bar.
 - Report generated from `build\commons-csv-j2k-real` against Java source `work\commons-csv\src\main\java`.
