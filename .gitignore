@@ -7,3 +7,4 @@ out/
 work/
 tmp/
 *.class
+reports/top5_observations_generated.md

@@ -13,7 +13,7 @@ output="$(cd "$2" && pwd)"
 if [ -n "${J2K_RUNNER_CMD:-}" ]; then
   cmd="${J2K_RUNNER_CMD//\{input\}/$input}"
   cmd="${cmd//\{output\}/$output}"
-  eval "$cmd"
+  bash -c "$cmd"
 else
   ./gradlew :runner:runIde --args="j2k $input $output"
 fi

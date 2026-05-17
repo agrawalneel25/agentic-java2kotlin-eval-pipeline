@@ -91,6 +91,7 @@ class J2KStarter : ApplicationStarter {
                 }
                 ProjectManagerEx.getInstanceEx().closeAndDispose(project)
             }
+            Files.walk(workRoot).sorted(Comparator.reverseOrder()).forEach(Files::delete)
         }
     }
 
@@ -134,7 +135,7 @@ class J2KStarter : ApplicationStarter {
 
         edtWrite {
             val rootModel: ModifiableRootModel = ModuleRootManager.getInstance(module).modifiableModel
-            rootModel.contentEntries.forEach { rootModel.removeContentEntry(it) }
+            rootModel.contentEntries.toList().forEach { rootModel.removeContentEntry(it) }
             val entry = rootModel.addContentEntry(srcVf)
             entry.addSourceFolder(srcVf, false)
             rootModel.inheritSdk()
@@ -202,10 +203,11 @@ class J2KStarter : ApplicationStarter {
     }
 
     private fun stripMarkers(text: String): String =
-        text.replace(Regex("""/\*@@[a-z]+@@\*/"""), "")
-            .replace(Regex("""\bkotlin\.(Int|Long|Short|Byte|Float|Double|Boolean|Char|String|Unit|Any)\b""")) {
+        text.replace(Regex("""/\*~~[a-z0-9]+~~\*/"""), "")
+            .replace(Regex("""\bkotlin\.(Int|Long|Short|Byte|Float|Double|Boolean|Char|String|Unit|Any|CharArray|Array|Throws)\b""")) {
                 it.groupValues[1]
             }
+            .replace(Regex("""@kotlin\.Throws\b"""), "@Throws")
 
     private fun <T> edt(block: () -> T): T {
         var value: T? = null

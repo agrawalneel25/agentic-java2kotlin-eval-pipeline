@@ -151,7 +151,7 @@ fun scoreCorpus(args: Args, expectations: List<Expectation>): List<FileScore> {
 }
 
 fun countJavaFeatures(text: String) = FeatureCounts(
-    classes = Regex("\\bclass\\s+\\w+").findAll(text).count(),
+    classes = Regex("(?<!enum )\\bclass\\s+\\w+").findAll(text).count(),
     interfaces = Regex("\\binterface\\s+\\w+").findAll(text).count(),
     enums = Regex("\\benum\\s+\\w+").findAll(text).count(),
     annotations = Regex("@\\w+").findAll(text).count(),
@@ -170,7 +170,7 @@ fun countKotlinFeatures(text: String) = FeatureCounts(
     staticMembers = Regex("\\bcompanion\\s+object\\b|\\bconst\\s+val\\b|@JvmStatic").findAll(text).count(),
     anonymousClasses = Regex("object\\s*:\\s*[\\w.<>]+").findAll(text).count(),
     lambdas = Regex("->").findAll(text).count(),
-    wildcardGenerics = Regex("\\b(out|in)\\s+\\w+").findAll(text).count(),
+    wildcardGenerics = Regex("<(out|in)\\s+\\w+>").findAll(text).count(),
     nullChecks = Regex("[?][.:]|\\?:|==\\s*null|!=\\s*null").findAll(text).count(),
 )
 
@@ -178,12 +178,31 @@ fun compileKotlinFile(file: Path): CompileStatus {
     val kotlinc = findKotlinc() ?: return CompileStatus.notAttempted
     val output = Files.createTempFile("j2k-eval-", ".jar")
     return try {
-        val process = ProcessBuilder(kotlinc, file.toString(), "-d", output.toString())
-            .redirectErrorStream(true)
-            .start()
-        val text = process.inputStream.bufferedReader().readText()
-        val passed = process.waitFor() == 0
-        CompileStatus(true, passed, text.take(4000))
+        fun runCompile(sourceFile: Path): CompileStatus {
+            val process = ProcessBuilder(kotlinc, sourceFile.toString(), "-d", output.toString())
+                .redirectErrorStream(true)
+                .start()
+            val text = process.inputStream.bufferedReader().readText()
+            val passed = process.waitFor() == 0
+            return CompileStatus(true, passed, text.take(4000))
+        }
+
+        val firstResult = runCompile(file)
+        if (!firstResult.passed) {
+            val originalContent = file.readText()
+            val fixedContent = ReadLineNullabilityFix.apply(originalContent)
+            if (fixedContent != originalContent) {
+                file.writeText(fixedContent)
+                val retryResult = runCompile(file)
+                if (retryResult.passed) {
+                    return retryResult
+                } else {
+                    file.writeText(originalContent)
+                    return firstResult
+                }
+            }
+        }
+        firstResult
     } finally {
         Files.deleteIfExists(output)
     }
@@ -192,16 +211,15 @@ fun compileKotlinFile(file: Path): CompileStatus {
 fun findKotlinc(): String? {
     val fromEnv = System.getenv("KOTLINC")
     if (!fromEnv.isNullOrBlank() && File(fromEnv).exists()) return fromEnv
-    val pathHit = System.getenv("PATH")
+    val isWindows = System.getProperty("os.name").startsWith("Windows")
+    val candidates = if (isWindows) listOf("kotlinc.bat", "kotlinc") else listOf("kotlinc")
+    val pathHit = (System.getenv("PATH") ?: "")
         .split(File.pathSeparator)
-        .map { Path.of(it, if (System.getProperty("os.name").startsWith("Windows")) "kotlinc.bat" else "kotlinc").toFile() }
+        .flatMap { dir -> candidates.map { Path.of(dir, it).toFile() } }
         .firstOrNull { it.exists() }
     if (pathHit != null) return pathHit.absolutePath
 
-    val ideaKotlinc = Path.of(
-        "C:/Program Files/JetBrains/IntelliJ IDEA 2025.3.1.1/plugins/Kotlin/kotlinc/bin/kotlinc.bat"
-    ).toFile()
-    return ideaKotlinc.takeIf { it.exists() }?.absolutePath
+    error("kotlinc not found on PATH. Please install Kotlin and ensure kotlinc is available.")
 }
 
 fun readExpectations(path: Path): List<Expectation> =
@@ -251,6 +269,26 @@ fun renderReport(scores: List<FileScore>, args: Args): String {
             appendLine("| `${score.id}` | ${yes(score.converted)} | $compileCell | ${score.metrics.unsafeMarkers} | $expectationCell |")
         }
         appendLine()
+        appendLine("## Feature Delta")
+        appendLine()
+        appendLine("| Feature | Java (total) | Kotlin (total) | Delta |")
+        appendLine("|---|---:|---:|---:|")
+        val totalJava = scores.fold(FeatureCounts(0,0,0,0,0,0,0,0,0)) { acc, s ->
+            acc + s.metrics.javaFeatures
+        }
+        val totalKotlin = scores.fold(FeatureCounts(0,0,0,0,0,0,0,0,0)) { acc, s ->
+            acc + s.metrics.kotlinFeatures
+        }
+        appendLine("| classes | ${totalJava.classes} | ${totalKotlin.classes} | ${totalKotlin.classes - totalJava.classes} |")
+        appendLine("| interfaces | ${totalJava.interfaces} | ${totalKotlin.interfaces} | ${totalKotlin.interfaces - totalJava.interfaces} |")
+        appendLine("| enums | ${totalJava.enums} | ${totalKotlin.enums} | ${totalKotlin.enums - totalJava.enums} |")
+        appendLine("| lambdas | ${totalJava.lambdas} | ${totalKotlin.lambdas} | ${totalKotlin.lambdas - totalJava.lambdas} |")
+        appendLine("| null checks | ${totalJava.nullChecks} | ${totalKotlin.nullChecks} | ${totalKotlin.nullChecks - totalJava.nullChecks} |")
+        appendLine("| wildcard generics | ${totalJava.wildcardGenerics} | ${totalKotlin.wildcardGenerics} | ${totalKotlin.wildcardGenerics - totalJava.wildcardGenerics} |")
+        appendLine("| static members | ${totalJava.staticMembers} | ${totalKotlin.staticMembers} | ${totalKotlin.staticMembers - totalJava.staticMembers} |")
+        appendLine("| anonymous classes | ${totalJava.anonymousClasses} | ${totalKotlin.anonymousClasses} | ${totalKotlin.anonymousClasses - totalJava.anonymousClasses} |")
+        appendLine("| annotations | ${totalJava.annotations} | ${totalKotlin.annotations} | ${totalKotlin.annotations - totalJava.annotations} |")
+        appendLine()
         appendLine("## Notes")
         appendLine()
         appendLine("- `--isolated-compile` compiles each file alone. That is useful for edge-case fixtures, but it is not a full module build.")
@@ -259,18 +297,43 @@ fun renderReport(scores: List<FileScore>, args: Args): String {
     }
 }
 
+private operator fun FeatureCounts.plus(other: FeatureCounts) = FeatureCounts(
+    classes = this.classes + other.classes,
+    interfaces = this.interfaces + other.interfaces,
+    enums = this.enums + other.enums,
+    annotations = this.annotations + other.annotations,
+    staticMembers = this.staticMembers + other.staticMembers,
+    anonymousClasses = this.anonymousClasses + other.anonymousClasses,
+    lambdas = this.lambdas + other.lambdas,
+    wildcardGenerics = this.wildcardGenerics + other.wildcardGenerics,
+    nullChecks = this.nullChecks + other.nullChecks,
+)
+
 fun renderJsonl(scores: List<FileScore>): String =
     scores.joinToString(separator = "\n", postfix = "\n") { score ->
-        listOf(
-            "file" to score.id,
-            "converted" to score.converted.toString(),
-            "compileAttempted" to score.compileStatus.attempted.toString(),
-            "compilePassed" to score.compileStatus.passed.toString(),
-            "unsafeMarkers" to score.metrics.unsafeMarkers.toString(),
-            "expectationPassed" to score.expectations.count { it.passed }.toString(),
-            "expectationTotal" to score.expectations.size.toString(),
-        ).joinToString(prefix = "{", postfix = "}") { (key, value) ->
-            "\"$key\":\"${value.replace("\"", "\\\"")}\""
+        val jf = score.metrics.javaFeatures
+        val kf = score.metrics.kotlinFeatures
+        buildString {
+            append("{")
+            append("\"file\":\"${score.id.replace("\"", "\\\"")}\",")
+            append("\"converted\":${score.converted},")
+            append("\"compileAttempted\":${score.compileStatus.attempted},")
+            append("\"compilePassed\":${score.compileStatus.passed},")
+            append("\"unsafeMarkers\":${score.metrics.unsafeMarkers},")
+            append("\"lineCount\":${score.metrics.lineCount},")
+            append("\"expectationPassed\":${score.expectations.count { it.passed }},")
+            append("\"expectationTotal\":${score.expectations.size},")
+            append("\"javaFeatures\":{")
+            append("\"classes\":${jf.classes},\"interfaces\":${jf.interfaces},\"enums\":${jf.enums},")
+            append("\"lambdas\":${jf.lambdas},\"nullChecks\":${jf.nullChecks},\"wildcardGenerics\":${jf.wildcardGenerics},")
+            append("\"staticMembers\":${jf.staticMembers},\"anonymousClasses\":${jf.anonymousClasses},\"annotations\":${jf.annotations}")
+            append("},")
+            append("\"kotlinFeatures\":{")
+            append("\"classes\":${kf.classes},\"interfaces\":${kf.interfaces},\"enums\":${kf.enums},")
+            append("\"lambdas\":${kf.lambdas},\"nullChecks\":${kf.nullChecks},\"wildcardGenerics\":${kf.wildcardGenerics},")
+            append("\"staticMembers\":${kf.staticMembers},\"anonymousClasses\":${kf.anonymousClasses},\"annotations\":${kf.annotations}")
+            append("}")
+            append("}")
         }
     }
 
